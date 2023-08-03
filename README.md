@@ -9,3 +9,10 @@ Our software solution is designed to effortlessly integrate with hardware device
 <b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through Convolutional Neural Networks (CNN), advanced machine learning algorithms running in the background, the system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately. 
 
 <b>2. Road Safty Model:</b> 
+
+<br/><br/>
+
+## Hackathon team members 
+<b>1. Priyam Saha :</b> Worked on both connecting the React and ML models, and ML deployment using AWS. <br/><br/>
+<b>2. Om Mittal :</b> <br/><br/>
+<b>3. Atanu Nayak :</b> <br/><br/>
