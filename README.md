@@ -6,6 +6,6 @@ Our software solution is designed to effortlessly integrate with hardware device
 <br/>
 
 ## Features
-<b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through machine learning algorithms running in the background, the system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately.
+<b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through Convolutional Neural Networks (CNN), advanced machine learning algorithms running in the background, the system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately. 
 
 <b>2. Road Safty Model:</b> 
