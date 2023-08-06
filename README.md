@@ -6,7 +6,7 @@ Our software solution is designed to effortlessly integrate with hardware device
 <br/>
 
 ## Features
-<b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through Convolutional Neural Networks (CNN), and advanced machine learning algorithms running in the background, the system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately. 
+<b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through Densenet and some extra dropout and densely connected layers the model is trained. Then the models weights are used in a flask api which is deployed in aws ec2 instance.The system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately.
 
 <b>2. Road Safety Model:</b> Images taken through the integrated camera are used to detect the position and number of vehicles approaching at any given point in time. Also, any image of a vehicle is successfully classified into its corresponding type, thus providing the user with complete information about the traffic and helping him navigate across roads.
 
@@ -23,6 +23,6 @@ The YOLOv5 model discussed previously (trained on the 80 classes of the COCO dat
 <br/><br/>
 
 ## Hackathon team members 
-<b>1. Priyam Saha:</b> Worked on both connecting the React and ML models, and ML deployment using AWS. <br/><br/>
+<b>1. Priyam Saha:</b> Worked on deploying ML models and using it in reactJS application, and ML deployment using AWS. <br/><br/>
 <b>2. Om Mittal:</b> Developed the models for face emotion detection and classification of vehicles, and also implemented the YOLO-based model. <br/><br/>
 <b>3. Atanu Nayak :</b> <br/><br/>
