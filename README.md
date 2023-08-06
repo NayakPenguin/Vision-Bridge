@@ -20,6 +20,8 @@ The YOLOv5 model discussed previously (trained on the 80 classes of the COCO dat
 
 <b>4. Face emotion detection:</b> To help visually impaired individuals understand the facial expressions of the people they meet in their daily lives, the software uses the camera on the user's device to capture an image of the person's face, and the underlying model then comments on what emotions the person appears to be feeling, such as happy, sad, excited, angry, etc; which the user is informed of through audio feedback.
 
+<b>5. Extraction of Text from Image:</b> This remarkable feature is designed to assist users in extracting text from images they input. By leveraging advanced optical character recognition (OCR) technology, the system can accurately identify and extract text present in the provided images. Users can simply upload or capture an image containing text, and the tool will process the image, converting the textual content into editable and searchable text. This functionality proves to be immensely useful in scenarios where manual typing of text from images is time-consuming or impractical. Whether it's extracting information from documents, signs, or any other image with textual content, this feature simplifies the process and enhances productivity for users.
+
 <br/><br/>
 
 ## Hackathon team members 
