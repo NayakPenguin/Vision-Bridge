@@ -1,9 +1,50 @@
+![GitHub](https://img.shields.io/github/license/Nayaker/Vision-Bridge.svg?style=flat)
+![GitHub top language](https://img.shields.io/github/languages/top/Nayaker/Vision-Bridge.svg?style=flat)
+![GitHub last commit](https://img.shields.io/github/last-commit/Nayaker/Vision-Bridge.svg?style=flat)
+![ViewCount](https://views.whatilearened.today/views/github/Nayaker/Vision-Bridge.svg?cache=remove)
+
 # Vision Bridge
+<p align="left">  
+    <br>
+	<a href="#">
+        <img height=80 src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/2300px-React-icon.svg.png"> 
+  </a>	
+  <img hspace=20></div>
+	<a href="#">
+		<img src="https://raw.githubusercontent.com/Thomas-George-T/Thomas-George-T/master/assets/python.svg" alt="Python" title="Python" height=80 />
+	</a>
+ <img hspace=20></div>
+	<a href="#">
+		<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Tensorflow_logo.svg/1200px-Tensorflow_logo.svg.png" alt="" title="" height=80 />
+	</a>
+  <img hspace=20></div>
+	<a href="#">
+		<img src="https://github.com/opencv/opencv/wiki/logo/OpenCV_logo_no_text.png" alt="" title="" height=80 />
+	</a>
+ <img hspace=20></div>
+	<a href="#">
+		<img src="https://cdn.analyticsvidhya.com/wp-content/uploads/2018/12/yologo_2.png" alt="" title="" height=80 />
+	</a>
+ <img hspace=20></div>
+	<a href="#">
+		<img src="https://www.svgrepo.com/show/306500/openai.svg" alt="" title="" height=80 />
+	</a>
+ 
+  <br>
+</p>
+<br/><br/>
+
+## Problem Statement 
+The persistent issue of limited accessibility continues to impede the full participation of people with disabilities in society, despite technological advancements and increased awareness. From navigating physical spaces to accessing information and using technology, individuals with disabilities often encounter barriers that hinder their ability to perform daily activities independently. This situation can result in feelings of isolation, exclusion, and frustration, ultimately affecting their overall quality of life. To overcome these challenges, a pressing need exists for a comprehensive solution that tackles accessibility issues and empowers people with disabilities to actively participate in all aspects of life.
+<br/><br/>
+
+## Our Solution
 Our software solution is designed to effortlessly integrate with hardware devices, including smart glasses, making it a user-friendly and accessible tool for individuals with visual impairments. Through the power of Computer Vision, this straightforward and effective project offers a transformative and inclusive experience, enabling users to navigate their surroundings with ease and confidence.
 <br/><br/>
-<img width="904" alt="Screenshot 2023-08-06 at 8 26 27 AM" src="https://github.com/Nayaker/Vision-Bridge/assets/93304796/9c6b9852-5e78-4dc3-b537-d1dceeef1ec2">
 
-<br/>
+## Virtual Reality Simulator for Product Experience
+<img width="904" alt="Screenshot 2023-08-06 at 8 26 27 AM" src="https://github.com/Nayaker/Vision-Bridge/assets/93304796/9c6b9852-5e78-4dc3-b537-d1dceeef1ec2">
+<br/><br/>
 
 ## Features
 <b>1. Currency Detection Model:</b> Our simulator allows users to present images of Indian currency notes to the camera. Through Densenet and some extra dropout and densely connected layers the model is trained. Then the models weights are used in a flask api which is deployed in aws ec2 instance.The system learns to identify the denomination of the money, providing users with a seamless experience to determine the amount accurately.
