@@ -25,4 +25,4 @@ The YOLOv5 model discussed previously (trained on the 80 classes of the COCO dat
 ## Hackathon team members 
 <b>1. Priyam Saha:</b> Worked on deploying ML models and using it in reactJS application, and ML deployment using AWS. <br/><br/>
 <b>2. Om Mittal:</b> Developed the models for face emotion detection and classification of vehicles, and also implemented the YOLO-based model. <br/><br/>
-<b>3. Atanu Nayak :</b> <br/><br/>
+<b>3. Atanu Nayak :</b> was involved in developing a seamless user simulator, utilizing React JS and vanilla CSS. Additionally, I played a part in creating the currency detection model and implementing both audio input and output features. <br/><br/>
