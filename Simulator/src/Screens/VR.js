@@ -9,10 +9,10 @@ import { currency_test } from "../features/currency_detection/api";
 
 
 const VR = () => {
-    const [currentModel, setCurrentModel] = useState(1);
+    const [currentModel, setCurrentModel] = useState("Select Model");
     const [selectedImage, setSelectedImage] = useState(null);
     const [result, setResult] = useState("No feedback!"); 
-    
+    const [openDropDown, setOpenDropDown] = useState(false)
     const [singleFile, setSingleFile] = useState({});
 
     // TextToSpeech.talk("Hello Beautiful World!");
@@ -71,15 +71,21 @@ const VR = () => {
                         <div className="small-circle clr-switch-on"></div>
                         <BluetoothAudioIcon style={{ "fontSize": "1.5rem", "fill": "white" }} />
                         {/* <div className="btn">Start</div> */}
-                        <div className="btn">
-                            Select Model
-                            <div className="drop-down">
-                                <div className="item">Standard Mode</div>
-                                <div className="item">Home Mode</div>
-                                <div className="item">Currency Detector</div>
-                                <div className="item">Human Recognition</div>
-                                <div className="item">Road Safty</div>
-                            </div>
+                        <div className="btn" onClick={() => setOpenDropDown(!openDropDown)}>
+                            <div className="clicker">{currentModel}</div>
+                            {
+                                openDropDown ? (
+                                    <div className="drop-down">
+                                        <div className="item" onClick={() => setCurrentModel("Standard Mode")}>Standard Mode</div>
+                                        <div className="item" onClick={() => setCurrentModel("Home Mode")}>Home Mode</div>
+                                        <div className="item" onClick={() => setCurrentModel("Currency Detector")}>Currency Detector</div>
+                                        <div className="item" onClick={() => setCurrentModel("Human Recognition")}>Human Recognition</div>
+                                        <div className="item" onClick={() => setCurrentModel("Road Safty")}>Road Safty</div>
+                                    </div>
+                                ) : (
+                                    <></>
+                                )
+                            }
                         </div>
                         <div className="btn">
                             <input type="file" id="image-upload" onChange={(e) => {handleImageUpload(e); setResult(null);}} style={{ display: 'none' }}/>
@@ -204,9 +210,9 @@ const Simulator = styled.div`
         .vr-btns{
             position: absolute;
             bottom: 35px;
-            left: 75px;
+            left: 50px;
             height: 50px;
-            width: 850px;
+            width: 900px;
             background: #262424;
             border-radius: 20px;
             padding: 0 20px;
@@ -216,12 +222,12 @@ const Simulator = styled.div`
 
             box-shadow: rgb(40 35 35) 0px 0px 50px 0px;
             backdrop-filter: blur(8px);
-
+            
             .btn{
                 padding: 5px 10px;
                 /* border: 1px solid #f8e2e2; */
                 border-radius: 10px;
-                width: 115px;
+                width: 140px;
                 background-color: #5f615c57;
                 color: white;
                 text-align: center;
@@ -230,6 +236,11 @@ const Simulator = styled.div`
 
                 label{
                     color: white;
+                }
+
+                .clicker{
+                    color: white;
+                    cursor: pointer;
                 }
 
                 .drop-down{
@@ -247,14 +258,24 @@ const Simulator = styled.div`
                         padding: 5px 10px;
                         /* border: 1px solid #f8e2e2; */
                         border-radius: 10px;
+                        cursor: pointer;
                         background-color: #ffffff;
                         color: #000;
-                        width: 100%;
+                        width: 80%;
                         margin: 2.5px;
                         text-align: center;
                         font-size: 0.75rem;
+                        border: 1px solid transparent;
+
+                        &:hover{
+                            border: 1px solid black;
+                        }
                     }
                 }
+            }
+
+            .btn-flex{
+                width: 140px;
             }
 
             .btn-mid{
