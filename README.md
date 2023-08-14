@@ -82,9 +82,10 @@ The YOLOv5 model discussed previously (trained on the 80 classes of the COCO dat
 <b>5. Extraction of Text from Image:</b> This remarkable feature is designed to assist users in extracting text from images they input. By leveraging advanced optical character recognition (OCR) technology, the system can accurately identify and extract text present in the provided images. Users can simply upload or capture an image containing text, and the tool will process the image, converting the textual content into editable and searchable text. This functionality proves to be immensely useful in scenarios where manual typing of text from images is time-consuming or impractical. Whether it's extracting information from documents, signs, or any other image with textual content, this feature simplifies the process and enhances productivity for users.
 
 <img height="300px" src="https://github.com/Nayaker/Vision-Bridge/assets/93304796/1c0880c0-8fee-47a8-8714-ddde1af65710" />
-
 <br/><br/>
-<b>Deployment of Model:</b> The machine learning models which are implemented using tensorflow are conevrted to .json files using tensorflow.js and those are used in react.js (clint side) directly. And other machine learning models which are implemeted using pytorch those are put in flask api endpoint which are called in react app with specific post request. Those flask app are deployed in AWS EC2 instance in ubuntu server.
+
+## Deployment of Model
+The machine learning models that are implemented using tensorflow are connected to .json files using tensorflow.js and those are used in react.js (clint side) directly. Other machine learning models that are implemented using Pytorch are put in the flask API endpoint which is called in react app with specific post request. Those flask apps are deployed in an AWS EC2 instance in the Ubuntu server.
 <br/><br/>
 
 ## Hackathon team members
