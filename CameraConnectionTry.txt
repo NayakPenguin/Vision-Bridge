@@ -1,0 +1,14 @@
+IN YOUR PHONE:
+1) IP WEBCAM install in Google Playstore
+2) Open and scroll to the bottom . 
+3) Start server option and at the bottom of the screen copy the IP address
+IN YOUR LAPTOP:
+4) Go the IP address and u will get access to every camera and video features to the laptop (video/camera/front camera/back camera and all)
+5) Laptop and camera are connected now 
+GOING TO THE CODE WHERE OPENCV AND DETECTION CODE IS WRITTEN:
+Changes to be made to take input from mobile camera--
+video=cv2.VideoCapture(0)
+address="" (IP adrress above) add /video
+video.open(address)
+
+Ref:https://www.youtube.com/watch?v=0hT2cGSqPfk
