@@ -12,3 +12,5 @@ address="" (IP adrress above) add /video
 video.open(address)
 
 Ref:https://www.youtube.com/watch?v=0hT2cGSqPfk
+
+Changes to be made in the ML_Models/YOLO_object_localization object detection on image and video .ipynb
