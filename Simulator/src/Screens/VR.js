@@ -7,6 +7,7 @@ import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import ArrowBackIosSharpIcon from '@material-ui/icons/ArrowBackIosSharp';
 import Webcam from 'react-webcam'; // Import the webcam library
 import { currency_test } from '../features/currency_detection/api';
+import camera from '../Camera';
 
 const VR = () => {
   const [currentModel, setCurrentModel] = useState('Select Model');
@@ -55,20 +56,40 @@ console.log("result : ", result);
     setSingleFile(file);
 };
 
-const captureImage = async () => {
+
+
+{/*const captureImage = async () => {
     console.log('Capture image function called');
 
-    if (!processingImage && webcamRef && webcamRef.current) {
+    if (!processingImage) {
       setProcessingImage(true);
 
-      const imageSrc = webcamRef.current.getScreenshot();
+      let imageSrc;
+
+      // Check if the image is from the webcam or selected from file input
+      if (selectedImage) {
+        // Image is from file input
+        imageSrc = selectedImage;
+        console.log('From file input');
+      } else if (webcamRef && webcamRef.current) {
+        // Image is from the webcam
+        const screenshot = webcamRef.current.getScreenshot();
+        imageSrc = screenshot;
+        console.log('From webcam');
+      }
+
       if (imageSrc) {
         setSelectedImage(imageSrc);
         setResult('The note in front of you is being displayed.');
 
-        const blob = await fetch(imageSrc).then((res) => res.blob());
+        // Use createObjectURL to set the background image directly
+        const imageUrl = URL.createObjectURL(new Blob([await fetch(imageSrc).then((res) => res.blob())]));
+        document.getElementById('simulator-screen').style.backgroundImage = `url(${imageUrl})`;
+        document.getElementById('simulator-screen').style.backgroundSize = 'cover';
+        document.getElementById('simulator-screen').style.backgroundRepeat = 'no-repeat';
+
         const formData = new FormData();
-        formData.append('file', blob, 'webcam-snapshot.png');
+        formData.append('file', imageUrl, 'webcam-snapshot.png');
 
         try {
           const response = await currency_test(formData);
@@ -77,16 +98,53 @@ const captureImage = async () => {
           setResult('Error processing the image.');
         } finally {
           setProcessingImage(false);
-        }
 
-        document.getElementById('simulator').style.backgroundImage = `url(${imageSrc})`;
-        document.getElementById('simulator').style.backgroundSize = 'cover';
-        document.getElementById('simulator').style.backgroundRepeat = 'no-repeat';
+          // Re-enable webcam (if it was disabled)
+          if (webcamRef && webcamRef.current) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+              webcamRef.current.srcObject = stream;
+              webcamRef.current.play(); // Play the video stream
+            });
+          }
+        }
+      }
+    }
+  }; */}
+  const captureImage = async () => {
+    console.log('Capture image function called');
+  
+    if (!processingImage) {
+      setProcessingImage(true);
+  
+      try {
+        const screenshot = webcamRef.getScreenshot();
+        setSelectedImage(screenshot);
+        setResult('The note in front of you is being displayed.');
+  
+        // Use createObjectURL to set the background image directly
+        const imageUrl = URL.createObjectURL(new Blob([await fetch(screenshot).then((res) => res.blob())]));
+        document.getElementById('simulator-screen').style.backgroundImage = `url(${imageUrl})`;
+        document.getElementById('simulator-screen').style.backgroundSize = 'cover';
+        document.getElementById('simulator-screen').style.backgroundRepeat = 'no-repeat';
+  
+        const formData = new FormData();
+        formData.append('file', imageUrl, 'webcam-snapshot.png');
+  
+        try {
+          const response = await currency_test(formData);
+          setResult(`The note in front of you is a ${response.data.result} rupee note.`);
+        } catch (error) {
+          setResult('Error processing the image.');
+        } finally {
+          setProcessingImage(false);
+        }
+      } catch (error) {
+        console.error('Error capturing image:', error);
+        setProcessingImage(false);
       }
     }
   };
   
-
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
       const speech = new SpeechSynthesisUtterance(text);
@@ -104,7 +162,7 @@ const captureImage = async () => {
           <div className="text">End Simulator</div>
         </div>
         <div className="vr-shape">
-        <div className="screen">
+       <div className="screen" id="simulator-screen">
           {selectedImage && !processingImage && (
             <div>
               <img src={selectedImage} alt="Selected" style={{ width: '100%', height: '100%' }} />
@@ -447,4 +505,3 @@ const Simulator = styled.div`
     }
   }
 `;
-
