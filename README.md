@@ -93,5 +93,6 @@ The machine learning models that are implemented using tensorflow are connected 
 <b>1. <a href="https://github.com/priyam-03/">Priyam Saha</a> : </b> Worked on deploying ML models and using it in reactJS application, and ML deployment using AWS. Worked on OCR for text extraction from images,face emotion detection.  <br/><br/>
 <b>2. <a href="https://github.com/Om-Mittal">Om Mittal</a> : </b> Developed the models for the classification of vehicles and implemented the YOLO-based model. <br/><br/>
 <b>3. <a href="https://github.com/Nayaker">Atanu Nayak</a> :</b> Developed a seamless user simulator with React JS and vanilla CSS, created a currency detection model, implemented audio input and output features. <br/><br/>
+<b>4. <a href="https://github.com/AnuragJha003">Anurag Kumar Jha</a> :</b> Developed a seamless user simulator with React JS and vanilla CSS, created a currency detection model, implemented audio input and output features. <br/><br/>
 
 
