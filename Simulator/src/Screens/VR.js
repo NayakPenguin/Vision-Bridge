@@ -54,9 +54,9 @@ const VR = () => {
     // }
     else if (currentModel == "Standard Mode") {
       const response = await object_localize(formData);
-      console.log("response : ", response);
-      console.log(response.data.result);
-      setResult("The objects infront you are " + response.data.result);
+      console.log(response);
+
+      setResult("The objects infront you are " + response.data.data);
     }
   };
   const uploadSingleFile = async () => {

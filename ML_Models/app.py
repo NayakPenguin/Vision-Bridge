@@ -72,7 +72,7 @@ def currency_predict(img_path, model):
 def objectlocalize(img_path,net):
     image = cv2.imread(img_path)
     (H,W) = image.shape[:2]
-
+    result = []
     ln = net.getLayerNames()
     ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
     blob = cv2.dnn.blobFromImage(image, 1/255.0, (416,416), swapRB=True, crop=False)
@@ -114,10 +114,13 @@ def objectlocalize(img_path,net):
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
 
             text = "{}: {:.4f}".format(labels[classids[i]], confidences[i])
+            result.append(labels[classids[i]])
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     ret, buffer = cv2.imencode('.jpg', image)
-    print(ret)
-    return buffer.tobytes()
+    
+    print(result)
+    # return buffer.tobytes()
+    return result
 
 @app.route('/', methods=['GET'])
 def index():
@@ -169,8 +172,8 @@ def objectupload():
         f.save(file_path)
 
         # Make prediction
-        processed_image = objectlocalize(file_path, net)
-        return Response(response=processed_image, content_type='image/jpeg')
+        result = objectlocalize(file_path, net)
+        return jsonify({"data":result})
     return None
 
 @app.route('/uploads/<filename>', methods=['GET'])
