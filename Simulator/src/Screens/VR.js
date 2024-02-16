@@ -1,31 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import DoubleArrowIcon from '@material-ui/icons/DoubleArrow';
-import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
-import BluetoothAudioIcon from '@material-ui/icons/BluetoothAudio';
-import VolumeUpIcon from '@material-ui/icons/VolumeUp';
-import ArrowBackIosSharpIcon from '@material-ui/icons/ArrowBackIosSharp';
-import Webcam from 'react-webcam'; // Import the webcam library
-import { currency_test } from '../features/currency_detection/api';
-import camera from '../Camera';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import DoubleArrowIcon from "@material-ui/icons/DoubleArrow";
+import PowerSettingsNewIcon from "@material-ui/icons/PowerSettingsNew";
+import BluetoothAudioIcon from "@material-ui/icons/BluetoothAudio";
+import VolumeUpIcon from "@material-ui/icons/VolumeUp";
+import ArrowBackIosSharpIcon from "@material-ui/icons/ArrowBackIosSharp";
+import Webcam from "react-webcam"; // Import the webcam library
+import {
+  currency_test,
+  object_localize,
+} from "../features/currency_detection/api";
+import camera from "../Camera";
 
 const VR = () => {
-  const [currentModel, setCurrentModel] = useState('Select Model');
-  const [result, setResult] = useState('No feedback!');
+  const [currentModel, setCurrentModel] = useState("Select Model");
+  const [result, setResult] = useState("No feedback!");
   const [openDropDown, setOpenDropDown] = useState(false);
   const [webcamRef, setWebcamRef] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null); // Define selectedImage here
   const [singleFile, setSingleFile] = useState({});
   const [processingImage, setProcessingImage] = useState(false); // New state variable
 
-
   const videoConstraints = {
     width: 1280,
     height: 720,
-    facingMode: 'user', // or 'environment' for rear camera
+    facingMode: "user", // or 'environment' for rear camera
   };
 
-  
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
       if (webcamRef && webcamRef.current) {
@@ -35,30 +36,51 @@ const VR = () => {
   }, [webcamRef]);
   useEffect(() => {
     uploadSingleFile();
-}, [singleFile]);
+  }, [singleFile]);
+  const ApplyAi = async (currentModel, formData) => {
+    if (currentModel == "Currency Detector") {
+      const response = await currency_test(formData);
+      console.log("response : ", response);
+      console.log(response.data.result);
+      setResult(
+        "The note infront you is a " + response.data.result + " rupee note."
+      );
+    }
+    // } else if (currentModel == "Vehicle Detector") {
+    //   const response = await vehicle_classify(formData);
+    //   console.log("response : ", response);
+    //   console.log(response.data.result);
+    //   setResult("The vehicle infront you is a " + response.data.result);
+    // }
+    else if (currentModel == "Standard Mode") {
+      const response = await object_localize(formData);
+      console.log(response);
 
-const uploadSingleFile = async () => {
+      setResult("The objects infront you are " + response.data.data);
+    }
+  };
+  const uploadSingleFile = async () => {
     const formData = new FormData();
     console.log(singleFile.name);
     formData.append("file", singleFile);
+    await ApplyAi(currentModel, formData);
+    // const response = await currency_test(formData);
+    // console.log("response : ", response);
+    // console.log(response.data.result);
+    // setResult(
+    //   "The note infront you is a " + response.data.result + " rupee note."
+    // );
+  };
 
-    const response = await currency_test(formData);
-    console.log("response : ", response);
-    console.log(response.data.result);
-    setResult("The note infront you is a " + response.data.result + " rupee note.");
-
-};
-
-console.log("result : ", result);
+  console.log("result : ", result);
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     setSelectedImage(URL.createObjectURL(file));
     setSingleFile(file);
-};
+  };
 
-
-
-{/*const captureImage = async () => {
+  {
+    /*const captureImage = async () => {
     console.log('Capture image function called');
 
     if (!processingImage) {
@@ -109,100 +131,132 @@ console.log("result : ", result);
         }
       }
     }
-  }; */}
+  }; */
+  }
   const captureImage = async () => {
-    console.log('Capture image function called');
-  
+    console.log("Capture image function called");
+
     if (!processingImage) {
       setProcessingImage(true);
-  
+
       try {
         const screenshot = webcamRef.getScreenshot();
         setSelectedImage(screenshot);
-        setResult('The note in front of you is being displayed.');
-  
+        setResult("The note in front of you is being displayed.");
+
         // Use createObjectURL to set the background image directly
-        const imageUrl = URL.createObjectURL(new Blob([await fetch(screenshot).then((res) => res.blob())]));
-        document.getElementById('simulator-screen').style.backgroundImage = `url(${imageUrl})`;
-        document.getElementById('simulator-screen').style.backgroundSize = 'cover';
-        document.getElementById('simulator-screen').style.backgroundRepeat = 'no-repeat';
-  
+        const imageUrl = URL.createObjectURL(
+          new Blob([await fetch(screenshot).then((res) => res.blob())])
+        );
+        document.getElementById(
+          "simulator-screen"
+        ).style.backgroundImage = `url(${imageUrl})`;
+        document.getElementById("simulator-screen").style.backgroundSize =
+          "cover";
+        document.getElementById("simulator-screen").style.backgroundRepeat =
+          "no-repeat";
+
         const formData = new FormData();
-        formData.append('file', imageUrl, 'webcam-snapshot.png');
-  
+        const blob = await fetch(screenshot).then((res) => res.blob());
+        formData.append("file", blob);
+
         try {
-          const response = await currency_test(formData);
-          setResult(`The note in front of you is a ${response.data.result} rupee note.`);
+          // const response = await currency_test(formData);
+          // setResult(
+          //   `The note in front of you is a ${response.data.result} rupee note.`
+          // );
+          await ApplyAi(currentModel, formData);
         } catch (error) {
-          setResult('Error processing the image.');
+          setResult("Error processing the image.");
         } finally {
           setProcessingImage(false);
         }
       } catch (error) {
-        console.error('Error capturing image:', error);
+        console.error("Error capturing image:", error);
         setProcessingImage(false);
       }
     }
   };
-  
+
   const speakText = (text) => {
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(speech);
     } else {
-      console.log('Speech synthesis not supported.');
+      console.log("Speech synthesis not supported.");
     }
   };
 
   return (
     <GrandContainer>
       <Simulator>
-      <div className="back-btn">
-          <ArrowBackIosSharpIcon style={{ fontSize: '1rem', fill: 'white' }} />
+        <div className="back-btn">
+          <ArrowBackIosSharpIcon style={{ fontSize: "1rem", fill: "white" }} />
           <div className="text">End Simulator</div>
         </div>
         <div className="vr-shape">
-       <div className="screen" id="simulator-screen">
-          {selectedImage && !processingImage && (
-            <div>
-              <img src={selectedImage} alt="Selected" style={{ width: '100%', height: '100%' }} />
-            </div>
-          )}
-          {!processingImage && (
-            <Webcam
-              ref={setWebcamRef}
-              videoConstraints={videoConstraints}
-              onClick={captureImage}
-              style={{
-                display: 'block',
-                maxWidth: '100%',
-                maxHeight: '100%',
-                borderRadius: '20px',
-              }}
-            />
-          )}
-        </div>
+          <div className="screen" id="simulator-screen">
+            {selectedImage && !processingImage && (
+              <div>
+                <img
+                  src={selectedImage}
+                  alt="Selected"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+            )}
+            {!processingImage && (
+              <Webcam
+                ref={setWebcamRef}
+                videoConstraints={videoConstraints}
+                onClick={captureImage}
+                style={{
+                  display: "block",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  borderRadius: "20px",
+                }}
+              />
+            )}
+          </div>
           <div className="vr-btns">
-            <PowerSettingsNewIcon style={{ fontSize: '1.5rem', fill: 'white' }} />
+            <PowerSettingsNewIcon
+              style={{ fontSize: "1.5rem", fill: "white" }}
+            />
             <div className="small-circle clr-switch-on"></div>
-            <BluetoothAudioIcon style={{ fontSize: '1.5rem', fill: 'white' }} />
+            <BluetoothAudioIcon style={{ fontSize: "1.5rem", fill: "white" }} />
             <div className="btn" onClick={() => setOpenDropDown(!openDropDown)}>
               <div className="clicker">{currentModel}</div>
               {openDropDown ? (
                 <div className="drop-down">
-                  <div className="item" onClick={() => setCurrentModel('Standard Mode')}>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Standard Mode")}
+                  >
                     Standard Mode
                   </div>
-                  <div className="item" onClick={() => setCurrentModel('Home Mode')}>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Home Mode")}
+                  >
                     Home Mode
                   </div>
-                  <div className="item" onClick={() => setCurrentModel('Currency Detector')}>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Currency Detector")}
+                  >
                     Currency Detector
                   </div>
-                  <div className="item" onClick={() => setCurrentModel('Human Recognition')}>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Human Recognition")}
+                  >
                     Human Recognition
                   </div>
-                  <div className="item" onClick={() => setCurrentModel('Road Safty')}>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Road Safty")}
+                  >
                     Road Safty
                   </div>
                 </div>
@@ -218,12 +272,12 @@ console.log("result : ", result);
                   handleImageUpload(e);
                   setResult(null);
                 }}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
               />
               <label htmlFor="image-upload">Select Image</label>
             </div>
             <div className="btn-mid" onClick={captureImage}>
-              <DoubleArrowIcon style={{ fontSize: '2.5rem', fill: 'black' }} />
+              <DoubleArrowIcon style={{ fontSize: "2.5rem", fill: "black" }} />
             </div>
             <div className="btn-long">
               <div className="small-circle clr-switch-on"></div>
@@ -231,12 +285,15 @@ console.log("result : ", result);
               <div className="small-circle"></div>
               <div className="highlighted">TEST MODE</div>
               <div className="normal">involved overview</div>
-              <VolumeUpIcon style={{ fontSize: '1.5rem', fill: 'white' }} />
+              <VolumeUpIcon style={{ fontSize: "1.5rem", fill: "white" }} />
             </div>
           </div>
         </div>
         <div className="earphone">
-          <img src="https://www.reviews.org/app/uploads/2022/01/71lj9Fdeq0L._AC_SL1500_-removebg-preview-275x300.png" alt="" />
+          <img
+            src="https://www.reviews.org/app/uploads/2022/01/71lj9Fdeq0L._AC_SL1500_-removebg-preview-275x300.png"
+            alt=""
+          />
         </div>
         <div className="earphone-message">
           <div className="heading">Audio Feedback</div>
@@ -260,7 +317,6 @@ console.log("result : ", result);
           onClick={captureImage}
           style={{ display: 'block', width: '100%', height: '100%' }}
             /> */}
-
       </Simulator>
     </GrandContainer>
   );

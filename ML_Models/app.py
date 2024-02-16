@@ -31,14 +31,14 @@ CURRENCY_PATH = 'currency_detection/feature_selection.h5'
 # Load your trained model
 model = load_model(CURRENCY_PATH)
 
-labelspath = "YOLO-Object-detection-using-OpenCv/coco/coco.names"
+labelspath = "YOLO_object_localization\coco\coco.names"
 labels = open(labelspath).read().strip().split("\n")
 
 np.random.seed(69)
 colors = np.random.randint(0, 255, size = (len(labels), 3), dtype= "uint8")
 
-weights_path = "YOLO-Object-detection-using-OpenCv/coco/yolov3.weights"
-config_path = "YOLO-Object-detection-using-OpenCv/coco/yolov3.cfg"
+weights_path = "YOLO_object_localization/coco/yolov3.weights"
+config_path = "YOLO_object_localization/coco/yolov3.cfg"
 net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
 def currency_predict(img_path, model):
     img = image.load_img(img_path, target_size=(224, 224))
@@ -72,7 +72,7 @@ def currency_predict(img_path, model):
 def objectlocalize(img_path,net):
     image = cv2.imread(img_path)
     (H,W) = image.shape[:2]
-
+    result = []
     ln = net.getLayerNames()
     ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
     blob = cv2.dnn.blobFromImage(image, 1/255.0, (416,416), swapRB=True, crop=False)
@@ -114,9 +114,13 @@ def objectlocalize(img_path,net):
             cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
 
             text = "{}: {:.4f}".format(labels[classids[i]], confidences[i])
+            result.append(labels[classids[i]])
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     ret, buffer = cv2.imencode('.jpg', image)
-    return buffer.tobytes()
+    
+    print(result)
+    # return buffer.tobytes()
+    return result
 
 @app.route('/', methods=['GET'])
 def index():
@@ -128,6 +132,7 @@ def index():
 def upload():
     if request.method == 'POST':
         # Get the file from post request
+        
         f = request.files['file']
         uniqueFileName = str(datetime.datetime.now().timestamp()).replace(".","")
         fileNameSplit = f.filename.split(".")
@@ -153,7 +158,8 @@ def objectupload():
     # print("ertr")
     if request.method == 'POST':
         # Get the file from post request
-        f = request.files['image']
+        print(request)
+        f = request.files['file']
         uniqueFileName = str(datetime.datetime.now().timestamp()).replace(".","")
         # print(uniqueFileName)
         fileNameSplit = f.filename.split(".")
@@ -166,8 +172,8 @@ def objectupload():
         f.save(file_path)
 
         # Make prediction
-        processed_image = objectlocalize(file_path, net)
-        return Response(response=processed_image, content_type='image/jpeg')
+        result = objectlocalize(file_path, net)
+        return jsonify({"data":result})
     return None
 
 @app.route('/uploads/<filename>', methods=['GET'])
