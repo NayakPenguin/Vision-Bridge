@@ -31,14 +31,14 @@ CURRENCY_PATH = 'currency_detection/feature_selection.h5'
 # Load your trained model
 model = load_model(CURRENCY_PATH)
 
-labelspath = "YOLO-Object-detection-using-OpenCv/coco/coco.names"
+labelspath = "YOLO_object_localization\coco\coco.names"
 labels = open(labelspath).read().strip().split("\n")
 
 np.random.seed(69)
 colors = np.random.randint(0, 255, size = (len(labels), 3), dtype= "uint8")
 
-weights_path = "YOLO-Object-detection-using-OpenCv/coco/yolov3.weights"
-config_path = "YOLO-Object-detection-using-OpenCv/coco/yolov3.cfg"
+weights_path = "YOLO_object_localization/coco/yolov3.weights"
+config_path = "YOLO_object_localization/coco/yolov3.cfg"
 net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
 def currency_predict(img_path, model):
     img = image.load_img(img_path, target_size=(224, 224))
@@ -116,6 +116,7 @@ def objectlocalize(img_path,net):
             text = "{}: {:.4f}".format(labels[classids[i]], confidences[i])
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     ret, buffer = cv2.imencode('.jpg', image)
+    print(ret)
     return buffer.tobytes()
 
 @app.route('/', methods=['GET'])
@@ -128,6 +129,7 @@ def index():
 def upload():
     if request.method == 'POST':
         # Get the file from post request
+        
         f = request.files['file']
         uniqueFileName = str(datetime.datetime.now().timestamp()).replace(".","")
         fileNameSplit = f.filename.split(".")
@@ -153,7 +155,8 @@ def objectupload():
     # print("ertr")
     if request.method == 'POST':
         # Get the file from post request
-        f = request.files['image']
+        print(request)
+        f = request.files['file']
         uniqueFileName = str(datetime.datetime.now().timestamp()).replace(".","")
         # print(uniqueFileName)
         fileNameSplit = f.filename.split(".")
