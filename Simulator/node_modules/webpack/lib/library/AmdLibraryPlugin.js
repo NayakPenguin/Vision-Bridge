@@ -68,8 +68,8 @@ class AmdLibraryPlugin extends AbstractLibraryPlugin {
 			}
 		}
 		return {
-			name: /** @type {string=} */ (name),
-			amdContainer: /** @type {string=} */ (amdContainer)
+			name: /** @type {string} */ (name),
+			amdContainer: /** @type {string} */ (amdContainer)
 		};
 	}
 
@@ -87,7 +87,11 @@ class AmdLibraryPlugin extends AbstractLibraryPlugin {
 		const modern = runtimeTemplate.supportsArrowFunction();
 		const modules = chunkGraph
 			.getChunkModules(chunk)
-			.filter(m => m instanceof ExternalModule);
+			.filter(
+				m =>
+					m instanceof ExternalModule &&
+					(m.externalType === "amd" || m.externalType === "amd-require")
+			);
 		const externals = /** @type {ExternalModule[]} */ (modules);
 		const externalsDepsArray = JSON.stringify(
 			externals.map(m =>

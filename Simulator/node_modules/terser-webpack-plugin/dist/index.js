@@ -3,18 +3,11 @@
 const path = require("path");
 const os = require("os");
 const {
-  TraceMap,
-  originalPositionFor
-} = require("@jridgewell/trace-mapping");
-const {
   validate
 } = require("schema-utils");
-const serialize = require("serialize-javascript");
-const {
-  Worker
-} = require("jest-worker");
 const {
   throttleAll,
+  memoize,
   terserMinify,
   uglifyJsMinify,
   swcMinify,
@@ -34,9 +27,9 @@ const {
 /** @typedef {import("./utils.js").TerserOptions} TerserOptions */
 /** @typedef {import("jest-worker").Worker} JestWorker */
 /** @typedef {import("@jridgewell/trace-mapping").SourceMapInput} SourceMapInput */
+/** @typedef {import("@jridgewell/trace-mapping").TraceMap} TraceMap */
 
 /** @typedef {RegExp | string} Rule */
-
 /** @typedef {Rule[] | Rule} Rules */
 
 /**
@@ -160,6 +153,13 @@ const {
  * @typedef {BasePluginOptions & { minimizer: { implementation: MinimizerImplementation<T>, options: MinimizerOptions<T> } }} InternalPluginOptions
  */
 
+const getTraceMapping = memoize(() =>
+// eslint-disable-next-line global-require
+require("@jridgewell/trace-mapping"));
+const getSerializeJavascript = memoize(() =>
+// eslint-disable-next-line global-require
+require("serialize-javascript"));
+
 /**
  * @template [T=TerserOptions]
  */
@@ -175,8 +175,8 @@ class TerserPlugin {
 
     // TODO make `minimizer` option instead `minify` and `terserOptions` in the next major release, also rename `terserMinify` to `terserMinimize`
     const {
-      minify = /** @type {MinimizerImplementation<T>} */terserMinify,
-      terserOptions = /** @type {MinimizerOptions<T>} */{},
+      minify = ( /** @type {MinimizerImplementation<T>} */terserMinify),
+      terserOptions = ( /** @type {MinimizerOptions<T>} */{}),
       test = /\.[cm]?js(\?.*)?$/i,
       extractComments = true,
       parallel = true,
@@ -249,7 +249,7 @@ class TerserPlugin {
       return builtError;
     }
     if (error.line) {
-      const original = sourceMap && originalPositionFor(sourceMap, {
+      const original = sourceMap && getTraceMapping().originalPositionFor(sourceMap, {
         line: error.line,
         column: error.col
       });
@@ -352,6 +352,11 @@ class TerserPlugin {
         if (initializedWorker) {
           return initializedWorker;
         }
+
+        // eslint-disable-next-line global-require
+        const {
+          Worker
+        } = require("jest-worker");
         initializedWorker = /** @type {MinimizerWorker<T>} */
 
         new Worker(require.resolve("./minify"), {
@@ -442,12 +447,12 @@ class TerserPlugin {
             options.minimizer.options.ecma = TerserPlugin.getEcmaVersion(compiler.options.output.environment || {});
           }
           try {
-            output = await (getWorker ? getWorker().transform(serialize(options)) : minify(options));
+            output = await (getWorker ? getWorker().transform(getSerializeJavascript()(options)) : minify(options));
           } catch (error) {
             const hasSourceMap = inputSourceMap && TerserPlugin.isSourceMap(inputSourceMap);
             compilation.errors.push( /** @type {WebpackError} */
 
-            TerserPlugin.buildError(error, name, hasSourceMap ? new TraceMap( /** @type {SourceMapInput} */inputSourceMap) :
+            TerserPlugin.buildError(error, name, hasSourceMap ? new (getTraceMapping().TraceMap)( /** @type {SourceMapInput} */inputSourceMap) :
             // eslint-disable-next-line no-undefined
             undefined,
             // eslint-disable-next-line no-undefined
@@ -473,7 +478,7 @@ class TerserPlugin {
             /**
              * @param {Error | string} item
              */
-            item => TerserPlugin.buildError(item, name, hasSourceMap ? new TraceMap( /** @type {SourceMapInput} */inputSourceMap) :
+            item => TerserPlugin.buildError(item, name, hasSourceMap ? new (getTraceMapping().TraceMap)( /** @type {SourceMapInput} */inputSourceMap) :
             // eslint-disable-next-line no-undefined
             undefined,
             // eslint-disable-next-line no-undefined
@@ -570,7 +575,7 @@ class TerserPlugin {
         compilation.updateAsset(name, source, newInfo);
       });
     }
-    const limit = getWorker && numberOfAssets > 0 ? /** @type {number} */numberOfWorkers : scheduledTasks.length;
+    const limit = getWorker && numberOfAssets > 0 ? ( /** @type {number} */numberOfWorkers) : scheduledTasks.length;
     await throttleAll(limit, scheduledTasks);
     if (initializedWorker) {
       await initializedWorker.end();
@@ -656,7 +661,7 @@ class TerserPlugin {
     const availableNumberOfCores = TerserPlugin.getAvailableNumberOfCores(this.options.parallel);
     compiler.hooks.compilation.tap(pluginName, compilation => {
       const hooks = compiler.webpack.javascript.JavascriptModulesPlugin.getCompilationHooks(compilation);
-      const data = serialize({
+      const data = getSerializeJavascript()({
         minimizer: typeof this.options.minimizer.implementation.getMinimizerVersion !== "undefined" ? this.options.minimizer.implementation.getMinimizerVersion() || "0.0.0" : "0.0.0",
         options: this.options.minimizer.options
       });

@@ -50,7 +50,7 @@ class IdleFileCachePlugin {
 		let timeSpendInStore = 0;
 		let avgTimeSpendInStore = 0;
 
-		/** @type {Map<string | typeof BUILD_DEPENDENCIES_KEY, () => Promise>} */
+		/** @type {Map<string | typeof BUILD_DEPENDENCIES_KEY, () => Promise<void>>} */
 		const pendingIdleTasks = new Map();
 
 		compiler.cache.hooks.store.tap(
@@ -171,6 +171,7 @@ class IdleFileCachePlugin {
 				isInitialStore = false;
 			}
 		};
+		/** @type {ReturnType<typeof setTimeout> | undefined} */
 		let idleTimer = undefined;
 		compiler.cache.hooks.beginIdle.tap(
 			{ name: "IdleFileCachePlugin", stage: Cache.STAGE_DISK },
@@ -198,11 +199,18 @@ class IdleFileCachePlugin {
 							}s.`
 						);
 				}
-				idleTimer = setTimeout(() => {
-					idleTimer = undefined;
-					isIdle = true;
-					resolvedPromise.then(processIdleTasks);
-				}, Math.min(isInitialStore ? idleTimeoutForInitialStore : Infinity, isLargeChange ? idleTimeoutAfterLargeChanges : Infinity, idleTimeout));
+				idleTimer = setTimeout(
+					() => {
+						idleTimer = undefined;
+						isIdle = true;
+						resolvedPromise.then(processIdleTasks);
+					},
+					Math.min(
+						isInitialStore ? idleTimeoutForInitialStore : Infinity,
+						isLargeChange ? idleTimeoutAfterLargeChanges : Infinity,
+						idleTimeout
+					)
+				);
 				idleTimer.unref();
 			}
 		);

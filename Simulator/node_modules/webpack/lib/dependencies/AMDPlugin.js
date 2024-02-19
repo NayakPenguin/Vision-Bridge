@@ -32,8 +32,12 @@ const ConstDependency = require("./ConstDependency");
 const LocalModuleDependency = require("./LocalModuleDependency");
 const UnsupportedDependency = require("./UnsupportedDependency");
 
+/** @typedef {import("../../declarations/WebpackOptions").JavascriptParserOptions} JavascriptParserOptions */
 /** @typedef {import("../../declarations/WebpackOptions").ModuleOptionsNormalized} ModuleOptions */
 /** @typedef {import("../Compiler")} Compiler */
+/** @typedef {import("../Dependency").DependencyLocation} DependencyLocation */
+/** @typedef {import("../javascript/JavascriptParser")} Parser */
+/** @typedef {import("../javascript/JavascriptParser").Range} Range */
 
 const PLUGIN_NAME = "AMDPlugin";
 
@@ -125,9 +129,19 @@ class AMDPlugin {
 						);
 					});
 
+				/**
+				 * @param {Parser} parser parser parser
+				 * @param {JavascriptParserOptions} parserOptions parserOptions
+				 * @returns {void}
+				 */
 				const handler = (parser, parserOptions) => {
 					if (parserOptions.amd !== undefined && !parserOptions.amd) return;
 
+					/**
+					 * @param {string} optionExpr option expression
+					 * @param {string} rootName root name
+					 * @param {function(): TODO} getMembers callback
+					 */
 					const tapOptionsHooks = (optionExpr, rootName, getMembers) => {
 						parser.hooks.expression
 							.for(optionExpr)
@@ -170,10 +184,10 @@ class AMDPlugin {
 					parser.hooks.expression.for("define").tap(PLUGIN_NAME, expr => {
 						const dep = new ConstDependency(
 							RuntimeGlobals.amdDefine,
-							expr.range,
+							/** @type {Range} */ (expr.range),
 							[RuntimeGlobals.amdDefine]
 						);
-						dep.loc = expr.loc;
+						dep.loc = /** @type {DependencyLocation} */ (expr.loc);
 						parser.state.module.addPresentationalDependency(dep);
 						return true;
 					});
@@ -190,10 +204,10 @@ class AMDPlugin {
 					parser.hooks.rename.for("define").tap(PLUGIN_NAME, expr => {
 						const dep = new ConstDependency(
 							RuntimeGlobals.amdDefine,
-							expr.range,
+							/** @type {Range} */ (expr.range),
 							[RuntimeGlobals.amdDefine]
 						);
-						dep.loc = expr.loc;
+						dep.loc = /** @type {DependencyLocation} */ (expr.loc);
 						parser.state.module.addPresentationalDependency(dep);
 						return false;
 					});

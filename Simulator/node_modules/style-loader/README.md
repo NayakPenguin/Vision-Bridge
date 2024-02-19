@@ -10,7 +10,7 @@
 [![node][node]][node-url]
 [![tests][tests]][tests-url]
 [![coverage][cover]][cover-url]
-[![chat][chat]][chat-url]
+[![discussion][discussion]][discussion-url]
 [![size][size]][size-url]
 
 # style-loader
@@ -69,6 +69,10 @@ module.exports = {
   },
 };
 ```
+
+## Security Warning
+
+This loader is primarily meant for development. The default settings are not safe for production environments. See the [recommended example configuration](#recommended) and the section on [nonces](#nonce) for details.
 
 ## Options
 
@@ -964,6 +968,8 @@ module.exports = {
 
 ### Nonce
 
+If you are using a [Content Security Policy](https://www.w3.org/TR/CSP3/) (CSP), the injected code will usually be blocked. A workaround is to use a nonce. Note, however, that using a nonce significantly reduces the protection provided by the CSP. You can read more about the security impact in [the specification](https://www.w3.org/TR/CSP3/#security-considerations). The better solution is not to use this loader in production.
+
 There are two ways to work with `nonce`:
 
 - using the `attributes` option
@@ -1253,7 +1259,7 @@ Please take a moment to read our contributing guidelines if you haven't yet done
 [tests-url]: https://github.com/webpack-contrib/style-loader/actions
 [cover]: https://codecov.io/gh/webpack-contrib/style-loader/branch/master/graph/badge.svg
 [cover-url]: https://codecov.io/gh/webpack-contrib/style-loader
-[chat]: https://badges.gitter.im/webpack/webpack.svg
-[chat-url]: https://gitter.im/webpack/webpack
+[discussion]: https://img.shields.io/github/discussions/webpack/webpack
+[discussion-url]: https://github.com/webpack/webpack/discussions
 [size]: https://packagephobia.now.sh/badge?p=style-loader
 [size-url]: https://packagephobia.now.sh/result?p=style-loader

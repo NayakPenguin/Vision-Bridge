@@ -6,11 +6,15 @@ import BluetoothAudioIcon from "@material-ui/icons/BluetoothAudio";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import ArrowBackIosSharpIcon from "@material-ui/icons/ArrowBackIosSharp";
 import Webcam from "react-webcam"; // Import the webcam library
+import axios from 'axios';
+import { GenerateTextRequest } from '@google/generative-ai';
+
 import {
   currency_test,
   object_localize,
 } from "../features/currency_detection/api";
 import camera from "../Camera";
+
 
 const VR = () => {
   const [currentModel, setCurrentModel] = useState("Select Model");
@@ -20,6 +24,7 @@ const VR = () => {
   const [selectedImage, setSelectedImage] = useState(null); // Define selectedImage here
   const [singleFile, setSingleFile] = useState({});
   const [processingImage, setProcessingImage] = useState(false); // New state variable
+  const [currentMode, setCurrentMode] = useState("Offline Mode");
 
   const videoConstraints = {
     width: 1280,
@@ -187,6 +192,38 @@ const VR = () => {
     }
   };
 
+
+  const handleChangeMode = () => {
+    if(currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
+    else setCurrentMode("Offline Mode");
+  }
+
+  // const apiKey = '...';
+  // const baseUrl = 'https://api.generative-ai.google/v1';
+
+  // async function fetchRandomText() {
+  //   const request = new GenerateTextRequest({
+  //     prompt: 'Write about Algolisted website',
+  //     maxTokens: 128,
+  //   });
+  
+  //   try {
+  //     const response = await axios.post(`${baseUrl}/text`, request, {
+  //       headers: {
+  //         Authorization: `Bearer ${apiKey}`,
+  //       },
+  //     });
+  //     const generatedText = response.data.text;
+  //     console.log(generatedText);
+  
+  //     // Update your React component state to display the text
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
+  
+  // fetchRandomText();
+
   return (
     <GrandContainer>
       <Simulator>
@@ -194,7 +231,11 @@ const VR = () => {
           <ArrowBackIosSharpIcon style={{ fontSize: "1rem", fill: "white" }} />
           <div className="text">End Simulator</div>
         </div>
+
         <div className="vr-shape">
+          {
+            currentMode == "Interactive Mode" ? <div className="ai-button">powered by <b>Google Gemini</b> <img src="https://static.wixstatic.com/media/592002_0f04cb41e098424588d09e2fba76ec65~mv2.gif" alt="" /></div> : null
+          }
           <div className="screen" id="simulator-screen">
             {selectedImage && !processingImage && (
               <div>
@@ -283,8 +324,10 @@ const VR = () => {
               <div className="small-circle clr-switch-on"></div>
               <div className="small-circle"></div>
               <div className="small-circle"></div>
-              <div className="highlighted">TEST MODE</div>
-              <div className="normal">involved overview</div>
+              <div className="highlighted" onClick={() => handleChangeMode()}>
+                {currentMode}
+              </div>
+              <div className="normal">Running</div>
               <VolumeUpIcon style={{ fontSize: "1.5rem", fill: "white" }} />
             </div>
           </div>
@@ -362,6 +405,33 @@ const Simulator = styled.div`
     display: grid;
     place-items: center;
     padding: 10px;
+
+    .ai-button{
+      position: absolute;
+      background-color: orange;
+      border-radius: 100px;
+      top: -12.5px;
+      right: -10px;
+      font-size: 0.75rem;
+      padding: 2.5px 15px;
+      padding-right: 35px;
+
+      display: flex;
+      align-items: center;
+      
+      b{
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-left: 5px;
+      }
+
+      img{
+        height: 35px;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+      }
+    }
 
     .screen {
       height: 450px;
@@ -489,6 +559,9 @@ const Simulator = styled.div`
           font-weight: 600;
           margin-left: 15px;
           margin-right: 15px;
+          /* width: 120px; */
+          flex: 1;
+          cursor: pointer;
         }
 
         .normal {
@@ -547,6 +620,7 @@ const Simulator = styled.div`
       position: relative;
       margin-left: 5px;
       cursor: pointer;
+      border: none;
     }
 
     .arrow {

@@ -500,10 +500,10 @@ var Volume = /** @class */ (function () {
             }
             return FSWatcher;
         }(FSWatcher));
-        // root.setChild('.', root);
-        // root.getNode().nlink++;
-        // root.setChild('..', root);
-        // root.getNode().nlink++;
+        root.setChild('.', root);
+        root.getNode().nlink++;
+        root.setChild('..', root);
+        root.getNode().nlink++;
         this.root = root;
     }
     Volume.fromJSON = function (json, cwd) {
@@ -715,6 +715,9 @@ var Volume = /** @class */ (function () {
             link = link.parent;
         }
         for (var name_1 in children) {
+            if (name_1 === '.' || name_1 === '..') {
+                continue;
+            }
             isEmpty = false;
             var child = link.getChild(name_1);
             if (!child) {
@@ -1423,7 +1426,7 @@ var Volume = /** @class */ (function () {
             var list_1 = [];
             for (var name_2 in link.children) {
                 var child = link.getChild(name_2);
-                if (!child) {
+                if (!child || name_2 === '.' || name_2 === '..') {
                     continue;
                 }
                 list_1.push(Dirent_1.default.build(child, options.encoding));
@@ -1440,6 +1443,9 @@ var Volume = /** @class */ (function () {
         }
         var list = [];
         for (var name_3 in link.children) {
+            if (name_3 === '.' || name_3 === '..') {
+                continue;
+            }
             list.push((0, encoding_1.strToEncoding)(name_3, options.encoding));
         }
         if (!isWin && options.encoding !== 'buffer')
@@ -2273,7 +2279,13 @@ var FSWatcher = /** @class */ (function (_super) {
             var _a;
             var filepath = link.getPath();
             var node = link.getNode();
-            var onNodeChange = function () { return _this.emit('change', 'change', relative(_this._filename, filepath)); };
+            var onNodeChange = function () {
+                var filename = relative(_this._filename, filepath);
+                if (!filename) {
+                    filename = _this._getName();
+                }
+                return _this.emit('change', 'change', filename);
+            };
             node.on('change', onNodeChange);
             var removers = (_a = _this._listenerRemovers.get(node.ino)) !== null && _a !== void 0 ? _a : [];
             removers.push(function () { return node.removeListener('change', onNodeChange); });
@@ -2312,8 +2324,9 @@ var FSWatcher = /** @class */ (function (_super) {
                 _this.emit('change', 'rename', relative(_this._filename, l.getPath()));
             };
             // children nodes changed
-            Object.values(link.children).forEach(function (childLink) {
-                if (childLink) {
+            Object.entries(link.children).forEach(function (_a) {
+                var name = _a[0], childLink = _a[1];
+                if (childLink && name !== '.' && name !== '..') {
                     watchLinkNodeChanged(childLink);
                 }
             });
@@ -2326,8 +2339,9 @@ var FSWatcher = /** @class */ (function (_super) {
                 link.removeListener('child:delete', onLinkChildDelete);
             });
             if (recursive) {
-                Object.values(link.children).forEach(function (childLink) {
-                    if (childLink) {
+                Object.entries(link.children).forEach(function (_a) {
+                    var name = _a[0], childLink = _a[1];
+                    if (childLink && name !== '.' && name !== '..') {
                         watchLinkChildrenChanged(childLink);
                     }
                 });
