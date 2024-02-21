@@ -17,6 +17,7 @@
     "react-scripts": "^5.0.1",
     "react-webcam": "^7.2.0",
     "styled-components": "^5.3.9",
+    "tesseract.js": "^5.0.4",
     "text-to-speech-js": "^1.1.10",
     "web-vitals": "^2.1.4"
   },

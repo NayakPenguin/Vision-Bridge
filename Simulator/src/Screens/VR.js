@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import Tesseract from "tesseract.js";
 import DoubleArrowIcon from "@material-ui/icons/DoubleArrow";
 import PowerSettingsNewIcon from "@material-ui/icons/PowerSettingsNew";
 import BluetoothAudioIcon from "@material-ui/icons/BluetoothAudio";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import ArrowBackIosSharpIcon from "@material-ui/icons/ArrowBackIosSharp";
 import Webcam from "react-webcam"; // Import the webcam library
-import axios from 'axios';
-import { GenerateTextRequest } from '@google/generative-ai';
+import axios from "axios";
+import { GenerateTextRequest } from "@google/generative-ai";
 
 import {
   currency_test,
   object_localize,
 } from "../features/currency_detection/api";
 import camera from "../Camera";
-
 
 const VR = () => {
   const [currentModel, setCurrentModel] = useState("Select Model");
@@ -42,6 +42,19 @@ const VR = () => {
   useEffect(() => {
     uploadSingleFile();
   }, [singleFile]);
+  const ocr = async (formData) => {
+    Tesseract.recognize(
+      formData.get("file"), // Get the blob from formData
+      "eng",
+      { logger: (m) => console.log(m) }
+    )
+      .then(({ data: { text } }) => {
+        setResult("The text infront you is" + text);
+      })
+      .catch((error) => {
+        console.error("Error performing OCR:", error);
+      });
+  };
   const ApplyAi = async (currentModel, formData) => {
     if (currentModel == "Currency Detector") {
       const response = await currency_test(formData);
@@ -62,6 +75,11 @@ const VR = () => {
       console.log(response);
 
       setResult("The objects infront you are " + response.data.data);
+    } else if (currentModel == "Text Recognition") {
+      await ocr(formData);
+      // console.log(response);
+
+      // setResult("The text infront you is " + response.data.data);
     }
   };
   const uploadSingleFile = async () => {
@@ -192,11 +210,10 @@ const VR = () => {
     }
   };
 
-
   const handleChangeMode = () => {
-    if(currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
+    if (currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
     else setCurrentMode("Offline Mode");
-  }
+  };
 
   // const apiKey = '...';
   // const baseUrl = 'https://api.generative-ai.google/v1';
@@ -206,7 +223,7 @@ const VR = () => {
   //     prompt: 'Write about Algolisted website',
   //     maxTokens: 128,
   //   });
-  
+
   //   try {
   //     const response = await axios.post(`${baseUrl}/text`, request, {
   //       headers: {
@@ -215,13 +232,13 @@ const VR = () => {
   //     });
   //     const generatedText = response.data.text;
   //     console.log(generatedText);
-  
+
   //     // Update your React component state to display the text
   //   } catch (error) {
   //     console.error(error);
   //   }
   // }
-  
+
   // fetchRandomText();
 
   return (
@@ -233,9 +250,15 @@ const VR = () => {
         </div>
 
         <div className="vr-shape">
-          {
-            currentMode == "Interactive Mode" ? <div className="ai-button">powered by <b>Google Gemini</b> <img src="https://static.wixstatic.com/media/592002_0f04cb41e098424588d09e2fba76ec65~mv2.gif" alt="" /></div> : null
-          }
+          {currentMode == "Interactive Mode" ? (
+            <div className="ai-button">
+              powered by <b>Google Gemini</b>{" "}
+              <img
+                src="https://static.wixstatic.com/media/592002_0f04cb41e098424588d09e2fba76ec65~mv2.gif"
+                alt=""
+              />
+            </div>
+          ) : null}
           <div className="screen" id="simulator-screen">
             {selectedImage && !processingImage && (
               <div>
@@ -299,6 +322,12 @@ const VR = () => {
                     onClick={() => setCurrentModel("Road Safty")}
                   >
                     Road Safty
+                  </div>
+                  <div
+                    className="item"
+                    onClick={() => setCurrentModel("Text Recognition")}
+                  >
+                    Text Recognition
                   </div>
                 </div>
               ) : (
@@ -406,7 +435,7 @@ const Simulator = styled.div`
     place-items: center;
     padding: 10px;
 
-    .ai-button{
+    .ai-button {
       position: absolute;
       background-color: orange;
       border-radius: 100px;
@@ -418,14 +447,14 @@ const Simulator = styled.div`
 
       display: flex;
       align-items: center;
-      
-      b{
+
+      b {
         font-size: 0.85rem;
         font-weight: 500;
         margin-left: 5px;
       }
 
-      img{
+      img {
         height: 35px;
         position: absolute;
         top: -5px;
