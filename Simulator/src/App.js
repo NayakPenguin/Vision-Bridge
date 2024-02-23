@@ -2,6 +2,7 @@ import React from 'react'
 import Landing from './Screens/Landing'
 import Login from './Screens/Login'
 import VR from './Screens/VR'
+import Gemini from './Screens/Gemini'
 
 const App = () => {
   return (
@@ -9,6 +10,7 @@ const App = () => {
       {/* <Landing/> */}
       {/* <Login/> */}
       <VR/>
+      {/* <Gemini/> */}
     </div>
   )
 }
