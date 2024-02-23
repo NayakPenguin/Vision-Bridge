@@ -7,7 +7,7 @@ import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import ArrowBackIosSharpIcon from "@material-ui/icons/ArrowBackIosSharp";
 import Webcam from "react-webcam"; // Import the webcam library
 import axios from 'axios';
-import { GenerateTextRequest } from '@google/generative-ai';
+import MicIcon from '@material-ui/icons/Mic';
 
 import {
   currency_test,
@@ -25,6 +25,8 @@ const VR = () => {
   const [singleFile, setSingleFile] = useState({});
   const [processingImage, setProcessingImage] = useState(false); // New state variable
   const [currentMode, setCurrentMode] = useState("Offline Mode");
+  const [userVoiceInput, setUserVoiceInput] = useState("Please describe the image in short, as if you are a guide for a blind person.");
+  const [micListing, setMicListing] = useState(false);
 
   const videoConstraints = {
     width: 1280,
@@ -42,6 +44,7 @@ const VR = () => {
   useEffect(() => {
     uploadSingleFile();
   }, [singleFile]);
+  
   const ApplyAi = async (currentModel, formData) => {
     if (currentModel == "Currency Detector") {
       const response = await currency_test(formData);
@@ -64,11 +67,24 @@ const VR = () => {
       setResult("The objects infront you are " + response.data.data);
     }
   };
+
+  const ApplyGemini = async (userInput, imageData) => {
+    // code in /Gemini.js
+    setResult("Gemini listening ...");
+  }
+
   const uploadSingleFile = async () => {
     const formData = new FormData();
     console.log(singleFile.name);
     formData.append("file", singleFile);
-    await ApplyAi(currentModel, formData);
+    
+    if(currentMode == "Offline Mode"){
+      await ApplyAi(currentModel, formData);
+    }
+    else {
+      await ApplyGemini(userVoiceInput, formData);
+    }
+
     // const response = await currency_test(formData);
     // console.log("response : ", response);
     // console.log(response.data.result);
@@ -78,6 +94,7 @@ const VR = () => {
   };
 
   console.log("result : ", result);
+  
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     setSelectedImage(URL.createObjectURL(file));
@@ -138,6 +155,7 @@ const VR = () => {
     }
   }; */
   }
+  
   const captureImage = async () => {
     console.log("Capture image function called");
 
@@ -147,7 +165,7 @@ const VR = () => {
       try {
         const screenshot = webcamRef.getScreenshot();
         setSelectedImage(screenshot);
-        setResult("The note in front of you is being displayed.");
+        // setResult("The note in front of you is being displayed.");
 
         // Use createObjectURL to set the background image directly
         const imageUrl = URL.createObjectURL(
@@ -170,7 +188,14 @@ const VR = () => {
           // setResult(
           //   `The note in front of you is a ${response.data.result} rupee note.`
           // );
-          await ApplyAi(currentModel, formData);
+
+          if(currentMode == "Offline Mode"){
+            await ApplyAi(currentModel, formData);
+          }
+          else {
+            await ApplyGemini(userVoiceInput, formData);
+          }
+
         } catch (error) {
           setResult("Error processing the image.");
         } finally {
@@ -182,6 +207,11 @@ const VR = () => {
       }
     }
   };
+
+  const userSpeaks = async () => {
+    // setUserVoiceInput(userVoiceInput);
+    setMicListing(!micListing);
+  }
 
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
@@ -197,32 +227,6 @@ const VR = () => {
     if(currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
     else setCurrentMode("Offline Mode");
   }
-
-  // const apiKey = '...';
-  // const baseUrl = 'https://api.generative-ai.google/v1';
-
-  // async function fetchRandomText() {
-  //   const request = new GenerateTextRequest({
-  //     prompt: 'Write about Algolisted website',
-  //     maxTokens: 128,
-  //   });
-  
-  //   try {
-  //     const response = await axios.post(`${baseUrl}/text`, request, {
-  //       headers: {
-  //         Authorization: `Bearer ${apiKey}`,
-  //       },
-  //     });
-  //     const generatedText = response.data.text;
-  //     console.log(generatedText);
-  
-  //     // Update your React component state to display the text
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-  
-  // fetchRandomText();
 
   return (
     <GrandContainer>
@@ -261,6 +265,12 @@ const VR = () => {
             )}
           </div>
           <div className="vr-btns">
+            {
+              currentMode != "Offline Mode" ? 
+              <div className="mic-btn" onClick={userSpeaks} style={{ background: micListing ? 'orange' : '#ffffff54' }}>
+                <MicIcon style={{ fontSize: "1.5rem", fill: "black" }} />
+              </div> : null
+            }
             <PowerSettingsNewIcon
               style={{ fontSize: "1.5rem", fill: "white" }}
             />
@@ -467,6 +477,21 @@ const Simulator = styled.div`
       align-items: center;
       box-shadow: rgb(40 35 35) 0px 0px 50px 0px;
       backdrop-filter: blur(8px);
+
+      .mic-btn{
+        position: absolute;
+        left: calc(495px - 17.5px);
+        bottom: 70px;
+        height: 35px;
+        width: 35px;
+        border-radius: 100%;
+        background-color: #ffffff54;
+        /* border: 1px solid #f8e2e2; */
+        box-shadow: rgb(150 142 142) 0px 0px 15px 0px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
 
       .btn {
         padding: 5px 10px;
