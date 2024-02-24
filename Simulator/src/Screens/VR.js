@@ -5,15 +5,13 @@ import PowerSettingsNewIcon from "@material-ui/icons/PowerSettingsNew";
 import BluetoothAudioIcon from "@material-ui/icons/BluetoothAudio";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import ArrowBackIosSharpIcon from "@material-ui/icons/ArrowBackIosSharp";
-import Webcam from "react-webcam"; // Import the webcam library
+import Webcam from "react-webcam";
 import axios from 'axios';
 import MicIcon from '@material-ui/icons/Mic';
-
-import {
-  currency_test,
-  object_localize,
-} from "../features/currency_detection/api";
+import { currency_test, object_localize } from "../features/currency_detection/api";
 import camera from "../Camera";
+import { GoogleGenerativeAI } from "@google/generative-ai"; // Import Gemini component
+import Gemini from "./Gemini";
 
 
 const VR = () => {
@@ -27,6 +25,12 @@ const VR = () => {
   const [currentMode, setCurrentMode] = useState("Offline Mode");
   const [userVoiceInput, setUserVoiceInput] = useState("Please describe the image in short, as if you are a guide for a blind person.");
   const [micListing, setMicListing] = useState(false);
+  const [loading, setLoading] = useState(false); 
+  const [data, setData] = useState(null); // Add this line
+  const [audioFeedback, setAudioFeedback] = useState(null); // New state for audio feedback
+
+
+  const API_KEY = 'AIzaSyAFQOOj4wAE-sTdcL6Uba1PCiblgOgKJyU';
 
   const videoConstraints = {
     width: 1280,
@@ -44,7 +48,8 @@ const VR = () => {
   useEffect(() => {
     uploadSingleFile();
   }, [singleFile]);
-  
+
+
   const ApplyAi = async (currentModel, formData) => {
     if (currentModel == "Currency Detector") {
       const response = await currency_test(formData);
@@ -68,10 +73,52 @@ const VR = () => {
     }
   };
 
+ 
   const ApplyGemini = async (userInput, imageData) => {
-    // code in /Gemini.js
-    setResult("Gemini listening ...");
-  }
+    setLoading(true);
+    try {
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  
+      // Generate content from Gemini Pro model
+      const result = await model.generateContent(userInput);
+      const text = result.response.text();
+  
+      // Set the result state
+      setResult(text);
+  
+      // Convert text to speech and get the audio blob
+      const audioBlob = await textToSpeech(text);
+  
+      // Set the audio feedback state
+      setAudioFeedback(audioBlob);
+  
+      // Play the audio using Web Audio API
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioBlob.arrayBuffer();
+      audioContext.decodeAudioData(audioBuffer, (buffer) => {
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+      });
+  
+    } catch (error) {
+      setResult("Error processing with Gemini");
+      console.error("ApplyGemini error: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+  // Function to convert text to speech and return audio blob
+ // Function to convert text to speech and return audio blob
+
+
+  
+
+  console.log("result : ", result);
 
   const uploadSingleFile = async () => {
     const formData = new FormData();
@@ -92,8 +139,6 @@ const VR = () => {
     //   "The note infront you is a " + response.data.result + " rupee note."
     // );
   };
-
-  console.log("result : ", result);
   
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -155,7 +200,6 @@ const VR = () => {
     }
   }; */
   }
-  
   const captureImage = async () => {
     console.log("Capture image function called");
 
@@ -209,20 +253,127 @@ const VR = () => {
   };
 
   const userSpeaks = async () => {
-    // setUserVoiceInput(userVoiceInput);
-    setMicListing(!micListing);
-  }
-
+    if (micListing) {
+      try {
+        const recognition = new window.webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+  
+        recognition.onresult = (event) => {
+          const speechResult = event.results[0][0].transcript;
+          setUserVoiceInput(speechResult);
+          setMicListing(false);
+          recognition.stop(); // Stop the recognition process
+        };
+  
+        recognition.onend = () => {
+          // Optionally, you can perform additional actions when the recognition ends
+          console.log('Speech recognition ended.');
+        };
+  
+        recognition.start();
+      } catch (error) {
+        console.error('Speech recognition not supported:', error);
+        setMicListing(false);
+      }
+    } else {
+      setMicListing(true);
+    }
+  };
+  
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(text);
+      speech.onend = () => {
+        setAudioFeedback(null); // Reset audioFeedback after speech is finished
+      };
       window.speechSynthesis.speak(speech);
     } else {
       console.log("Speech synthesis not supported.");
     }
   };
 
-
+  async function fileToGenerativePart(file) {
+    const base64EncodedDataPromise = new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+  
+    return {
+      inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+    };
+  }
+  const fetchDataFromGeminiProVisionAPI = async () => {
+    try {
+      setLoading(true);
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+  
+      const fileInputEl = document.querySelector("input[type=file]");
+      const imageParts = await Promise.all(
+        [...fileInputEl.files].map(fileToGenerativePart)
+      );
+  
+      // Adding default inputText for every image
+      const defaultInputText =
+        "Describe the image as if you are a guide for a blind person";
+      const userSpeechResult = await getUserSpeech();
+  
+      const isFirstTime = true;
+      const inputText = isFirstTime ? defaultInputText : userSpeechResult;
+  
+      const result = await model.generateContent([inputText, ...imageParts]);
+      const text = result.response.text();
+  
+      // Convert text to speech and get the audio blob
+      const audioBlob = await textToSpeech(text);
+  
+      setLoading(false);
+      setData(audioBlob);
+    } catch (error) {
+      setLoading(false);
+      console.error("fetchDataFromGeminiAPI error: ", error);
+    }
+  };
+  
+  // Function to get user speech input
+  const getUserSpeech = async () => {
+    return new Promise((resolve) => {
+      if (micListing) {
+        const recognition = new window.webkitSpeechRecognition();
+        recognition.lang = "en-US";
+  
+        recognition.onresult = (event) => {
+          const speechResult = event.results[0][0].transcript;
+          resolve(speechResult);
+        };
+  
+        recognition.onend = () => {
+          recognition.stop();
+        };
+  
+        recognition.start();
+      } else {
+        resolve("");
+      }
+    });
+  };
+  
+  // Function to convert text to speech and return audio blob
+  const textToSpeech = async (text) => {
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => {
+        const audioBlob = new Blob([new Uint8Array(0)], { type: "audio/wav" });
+        resolve(audioBlob);
+      };
+      utterance.onerror = (error) => {
+        reject(error);
+      };
+      window.speechSynthesis.speak(utterance);
+    });
+  };
+  
   const handleChangeMode = () => {
     if(currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
     else setCurrentMode("Offline Mode");
@@ -237,9 +388,17 @@ const VR = () => {
         </div>
 
         <div className="vr-shape">
-          {
-            currentMode == "Interactive Mode" ? <div className="ai-button">powered by <b>Google Gemini</b> <img src="https://static.wixstatic.com/media/592002_0f04cb41e098424588d09e2fba76ec65~mv2.gif" alt="" /></div> : null
-          }
+        {currentMode === "Interactive Mode" && (
+        <Gemini
+          inputText={userVoiceInput}
+          onData={(geminiData) => {
+            setResult(geminiData);
+            setData(geminiData); // Set Gemini data to the state
+            // Speak the Gemini data
+            speakText(geminiData);
+          }}
+        />
+      )}
           <div className="screen" id="simulator-screen">
             {selectedImage && !processingImage && (
               <div>
@@ -351,17 +510,23 @@ const VR = () => {
         <div className="earphone-message">
           <div className="heading">Audio Feedback</div>
           <div className="feedback">
-            {result == null ? (
-              <>No feedback!</>
-            ) : (
-              <>
-                {result}
-                <button className="speak-btn" onClick={() => speakText(result)}>
-                  Speak
-                </button>
-              </>
-            )}
-          </div>
+  {audioFeedback == null ? (
+    <>No feedback!</>
+  ) : (
+    <>
+      <audio controls>
+        <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
+        Your browser does not support the audio element.
+      </audio>
+      <button
+        className="speak-btn"
+        onClick={() => speakText(audioFeedback)}
+      >
+        Speak
+      </button>
+    </>
+  )}
+</div>
           <div className="arrow"></div>
         </div>
         {/*<Webcam
