@@ -161,7 +161,7 @@ function Gemini() {
       return (
         <div className="feedback">
           {audioFeedback == null ? (
-            <>No feedback!</>
+            <>Gemini Response Loading ....</>
           ) : (
             <>
               <audio controls>
@@ -210,7 +210,31 @@ function Gemini() {
         </button>
         <hr />
         {renderData()}
-      </div>
+        {!interactiveMode && (
+        <div className="earphone-message">
+          <div className="heading">Audio Feedback</div>
+          <div className="feedback">
+            {audioFeedback == null ? (
+              <>Gemini Response Loading ....</>
+            ) : (
+              <>
+                <audio controls>
+                  <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+                <button
+                  className="speak-btn"
+                  onClick={() => speakText(audioFeedback)}
+                >
+                  Speak
+                </button>
+              </>
+            )}
+          </div>
+          <div className="arrow"></div>
+        </div>
+      )}
+            </div>
     </>
   );
 };

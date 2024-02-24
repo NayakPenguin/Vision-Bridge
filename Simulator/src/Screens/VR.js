@@ -510,20 +510,11 @@ const VR = () => {
         <div className="earphone-message">
           <div className="heading">Audio Feedback</div>
           <div className="feedback">
-  {audioFeedback == null ? (
-    <>No feedback!</>
+  { currentMode != "Offline Mode"  ? (
+    <>Gemini Response Loading ....</>
   ) : (
     <>
-      <audio controls>
-        <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
-        Your browser does not support the audio element.
-      </audio>
-      <button
-        className="speak-btn"
-        onClick={() => speakText(audioFeedback)}
-      >
-        Speak
-      </button>
+    No FeedBack as of now...
     </>
   )}
 </div>
