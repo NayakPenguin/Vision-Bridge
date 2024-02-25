@@ -10,8 +10,16 @@ function Gemini() {
   const [userVoiceInput, setUserVoiceInput] = useState("Please describe the image in short, as if you are a guide for a blind person.");
   const [audioFeedback, setAudioFeedback] = useState(null); // New state for audio feedback
   const [interactiveMode, setInteractiveMode] = useState(true);
-
+  const [singleFile, setSingleFile] = useState({});
+  const [selectedImage, setSelectedImage] = useState(null); // Define selectedImage here
   let recognition; // Declare recognition outside the function to reuse it
+  
+  
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    setSelectedImage(URL.createObjectURL(file));
+    setSingleFile(file);
+  };
 
   const userSpeaks = async () => {
     if (micListing) {
@@ -28,9 +36,11 @@ function Gemini() {
 
         recognition.onend = () => {
           // Optionally, you can perform additional actions when the recognition ends
+          setMicListing(false);
           console.log('Speech recognition ended.');
         };
 
+        setMicListing(true);
         recognition.start();
       } catch (error) {
         console.error('Speech recognition not supported:', error);
@@ -143,19 +153,38 @@ function Gemini() {
   const textToSpeech = async (text) => {
     return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.onend = () => {
-        const audioBlob = new Blob([new Uint8Array(0)], { type: "audio/wav" });
-        setMicListing(false); // Set micListing to false after speech synthesis is completed
-        resolve(audioBlob);
+  
+      // Create an audio context
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+      // Handle the onend event
+      utterance.onend = async () => {
+        try {
+          // Wait for a short duration to allow the AudioContext to settle
+          await new Promise(resolve => setTimeout(resolve, 500));
+  
+          // Create an empty buffer to prevent decodeAudioData error
+          const buffer = audioContext.createBuffer(1, 1, 22050);
+  
+          // Resolve with the buffer
+          resolve(buffer);
+        } catch (error) {
+          // Reject if any error occurs
+          reject(error);
+        }
       };
+  
+      // Handle the onerror event
       utterance.onerror = (error) => {
         setMicListing(false); // Handle micListing update on error as well
         reject(error);
       };
+  
+      // Start the speech synthesis
       window.speechSynthesis.speak(utterance);
     });
   };
-
+  
   async function fileToGenerativePart(file) {
     const base64EncodedDataPromise = new Promise((resolve) => {
       const reader = new FileReader();
@@ -171,26 +200,6 @@ function Gemini() {
   function renderData() {
     if (data instanceof Blob) {
       // Handle audio feedback
-      return (
-        <div className="feedback">
-          {audioFeedback == null ? (
-            <>Gemini Response Loading ....</>
-          ) : (
-            <>
-              <audio controls>
-                <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
-                Your browser does not support the audio element.
-              </audio>
-              <button
-                className="speak-btn"
-                onClick={() => speakText(audioFeedback)}
-              >
-                Speak
-              </button>
-            </>
-          )}
-        </div>
-      );
     } if (typeof data === 'string') {
       // Handle text response
       return <div>Response: {data}</div>;
@@ -203,49 +212,26 @@ function Gemini() {
   return (
     <>
       <div className="card">
-        <input type="file" />
-        <input
+        {/*<input
           type="text"
           style={{ width: 400 }}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-        />
+  /> */}
         {" | "}
-        <button disabled={loading} onClick={() => fetchDataFromGeminiProAPI()}>
+        {/*<button disabled={loading} onClick={() => fetchDataFromGeminiProAPI()}>
           {loading ? "Loading..." : "Get PRO data"}
-        </button>
-        <button
-          disabled={loading}
-          onClick={() => fetchDataFromGeminiProVisionAPI()}
-        >
-          {loading ? "Loading..." : "Get PRO Vision data"}
-        </button>
+</button> */}
+        {interactiveMode && (
+  <button
+    disabled={loading}
+    onClick={() => fetchDataFromGeminiProVisionAPI()}
+  >
+    {loading ? "Loading..." : "Get Gemini Response"}
+  </button>
+)}
         <hr />
         {renderData()}
-        {!interactiveMode && (
-          <div className="earphone-message">
-            <div className="heading">Audio Feedback</div>
-            <div className="feedback">
-              {audioFeedback == null ? (
-                <>Gemini Response Loading ....</>
-              ) : (
-                <>
-                  <audio controls>
-                    <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
-                    Your browser does not support the audio element.
-                  </audio>
-                  <button
-                    className="speak-btn"
-                    onClick={() => speakText(audioFeedback)}
-                  >
-                    Speak
-                  </button>
-                </>
-              )}
-            </div>
-            <div className="arrow"></div>
-          </div>
-        )}
       </div>
     </>
   );
