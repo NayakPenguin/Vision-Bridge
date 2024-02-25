@@ -11,25 +11,26 @@ function Gemini() {
   const [audioFeedback, setAudioFeedback] = useState(null); // New state for audio feedback
   const [interactiveMode, setInteractiveMode] = useState(true);
 
+  let recognition; // Declare recognition outside the function to reuse it
 
   const userSpeaks = async () => {
     if (micListing) {
       try {
-        const recognition = new window.webkitSpeechRecognition();
+        recognition = new window.webkitSpeechRecognition();
         recognition.lang = 'en-US';
-  
+
         recognition.onresult = (event) => {
           const speechResult = event.results[0][0].transcript;
           setUserVoiceInput(speechResult);
-          setMicListing(false);
           recognition.stop(); // Stop the recognition process
+          setMicListing(false);
         };
-  
+
         recognition.onend = () => {
           // Optionally, you can perform additional actions when the recognition ends
           console.log('Speech recognition ended.');
         };
-  
+
         recognition.start();
       } catch (error) {
         console.error('Speech recognition not supported:', error);
@@ -39,7 +40,7 @@ function Gemini() {
       setMicListing(true);
     }
   };
-  
+
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(text);
@@ -51,6 +52,7 @@ function Gemini() {
       console.log("Speech synthesis not supported.");
     }
   };
+
   async function fetchDataFromGeminiProAPI() {
     try {
       // ONLY TEXT
@@ -86,10 +88,13 @@ function Gemini() {
       // Adding default inputText for every image
       const defaultInputText =
         "Describe the image as if you are a guide for a blind person";
-      const userSpeechResult = await getUserSpeech();
-  
+      //const userSpeechResult = await getUserSpeech();
+      const userSpeechResult=      
+      await userSpeaks();// Use userSpeaks to capture mic input
+      
       const isFirstTime = true;
       const inputText = isFirstTime ? defaultInputText : userSpeechResult;
+      
   
       const result = await model.generateContent([inputText, ...imageParts]);
       const text = result.response.text();
@@ -98,6 +103,7 @@ function Gemini() {
       const audioBlob = await textToSpeech(text);
   
       setLoading(false);
+      setMicListing(false);
       setData(audioBlob);
     } catch (error) {
       setLoading(false);
@@ -105,44 +111,50 @@ function Gemini() {
     }
   };
   
-  // Function to get user speech input
   const getUserSpeech = async () => {
     return new Promise((resolve) => {
       if (micListing) {
-        const recognition = new window.webkitSpeechRecognition();
-        recognition.lang = "en-US";
-  
-        recognition.onresult = (event) => {
-          const speechResult = event.results[0][0].transcript;
-          resolve(speechResult);
-        };
-  
-        recognition.onend = () => {
-          recognition.stop();
-        };
-  
-        recognition.start();
+        if (!recognition) {
+          recognition = new window.webkitSpeechRecognition();
+          recognition.lang = "en-US";
+
+          recognition.onresult = (event) => {
+            const speechResult = event.results[0][0].transcript;
+            if (event.results[0].isFinal) {
+              recognition.stop();
+              recognition = null; // Reset recognition instance for the next use
+              setMicListing(false); // Stop micListing after the first input
+            }
+            resolve(speechResult);
+          };
+
+          recognition.onend = () => {
+            recognition.stop();
+          };
+
+          recognition.start();
+        }
       } else {
         resolve("");
       }
     });
   };
-  
-  // Function to convert text to speech and return audio blob
+
   const textToSpeech = async (text) => {
     return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.onend = () => {
         const audioBlob = new Blob([new Uint8Array(0)], { type: "audio/wav" });
+        setMicListing(false); // Set micListing to false after speech synthesis is completed
         resolve(audioBlob);
       };
       utterance.onerror = (error) => {
+        setMicListing(false); // Handle micListing update on error as well
         reject(error);
       };
       window.speechSynthesis.speak(utterance);
     });
   };
-  
 
   async function fileToGenerativePart(file) {
     const base64EncodedDataPromise = new Promise((resolve) => {
@@ -150,11 +162,12 @@ function Gemini() {
       reader.onloadend = () => resolve(reader.result.split(",")[1]);
       reader.readAsDataURL(file);
     });
-  
+
     return {
       inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
     };
   }
+
   function renderData() {
     if (data instanceof Blob) {
       // Handle audio feedback
@@ -178,18 +191,17 @@ function Gemini() {
           )}
         </div>
       );
-    } else if (typeof data === 'string') {
+    } if (typeof data === 'string') {
       // Handle text response
       return <div>Response: {data}</div>;
-    } else {
+    } /*else {
       // Handle other types of responses
       return <div>Unknown response type</div>;
-    }
+    }*/
   }
-  
+
   return (
     <>
-      <h1>Vite + React | Google AI Gemini Integration</h1>
       <div className="card">
         <input type="file" />
         <input
@@ -211,33 +223,32 @@ function Gemini() {
         <hr />
         {renderData()}
         {!interactiveMode && (
-        <div className="earphone-message">
-          <div className="heading">Audio Feedback</div>
-          <div className="feedback">
-            {audioFeedback == null ? (
-              <>Gemini Response Loading ....</>
-            ) : (
-              <>
-                <audio controls>
-                  <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
-                  Your browser does not support the audio element.
-                </audio>
-                <button
-                  className="speak-btn"
-                  onClick={() => speakText(audioFeedback)}
-                >
-                  Speak
-                </button>
-              </>
-            )}
-          </div>
-          <div className="arrow"></div>
-        </div>
-      )}
+          <div className="earphone-message">
+            <div className="heading">Audio Feedback</div>
+            <div className="feedback">
+              {audioFeedback == null ? (
+                <>Gemini Response Loading ....</>
+              ) : (
+                <>
+                  <audio controls>
+                    <source src={URL.createObjectURL(audioFeedback)} type="audio/wav" />
+                    Your browser does not support the audio element.
+                  </audio>
+                  <button
+                    className="speak-btn"
+                    onClick={() => speakText(audioFeedback)}
+                  >
+                    Speak
+                  </button>
+                </>
+              )}
             </div>
+            <div className="arrow"></div>
+          </div>
+        )}
+      </div>
     </>
   );
-};
-  
+}
 
 export default Gemini;
