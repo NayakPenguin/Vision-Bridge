@@ -25,7 +25,7 @@ const VR = () => {
   const [currentMode, setCurrentMode] = useState("Offline Mode");
   const [userVoiceInput, setUserVoiceInput] = useState("Please describe the image in short, as if you are a guide for a blind person.");
   const [micListing, setMicListing] = useState(false);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null); // Add this line
   const [audioFeedback, setAudioFeedback] = useState(null); // New state for audio feedback
 
@@ -73,26 +73,26 @@ const VR = () => {
     }
   };
 
- 
+
   const ApplyGemini = async (userInput, imageData) => {
     setLoading(true);
     try {
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
+
       // Generate content from Gemini Pro model
       const result = await model.generateContent(userInput);
       const text = result.response.text();
-  
+
       // Set the result state
       setResult(text);
-  
+
       // Convert text to speech and get the audio blob
       const audioBlob = await textToSpeech(text);
-  
+
       // Set the audio feedback state
       setAudioFeedback(audioBlob);
-  
+
       // Play the audio using Web Audio API
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const audioBuffer = await audioBlob.arrayBuffer();
@@ -102,7 +102,7 @@ const VR = () => {
         source.connect(audioContext.destination);
         source.start();
       });
-  
+
     } catch (error) {
       setResult("Error processing with Gemini");
       console.error("ApplyGemini error: ", error);
@@ -110,13 +110,13 @@ const VR = () => {
       setLoading(false);
     }
   };
-  
-  
+
+
   // Function to convert text to speech and return audio blob
- // Function to convert text to speech and return audio blob
+  // Function to convert text to speech and return audio blob
 
 
-  
+
 
   console.log("result : ", result);
 
@@ -124,8 +124,8 @@ const VR = () => {
     const formData = new FormData();
     console.log(singleFile.name);
     formData.append("file", singleFile);
-    
-    if(currentMode == "Offline Mode"){
+
+    if (currentMode == "Offline Mode") {
       await ApplyAi(currentModel, formData);
     }
     else {
@@ -139,7 +139,7 @@ const VR = () => {
     //   "The note infront you is a " + response.data.result + " rupee note."
     // );
   };
-  
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     setSelectedImage(URL.createObjectURL(file));
@@ -233,7 +233,7 @@ const VR = () => {
           //   `The note in front of you is a ${response.data.result} rupee note.`
           // );
 
-          if(currentMode == "Offline Mode"){
+          if (currentMode == "Offline Mode") {
             await ApplyAi(currentModel, formData);
           }
           else {
@@ -257,19 +257,19 @@ const VR = () => {
       try {
         const recognition = new window.webkitSpeechRecognition();
         recognition.lang = 'en-US';
-  
+
         recognition.onresult = (event) => {
           const speechResult = event.results[0][0].transcript;
           setUserVoiceInput(speechResult);
           setMicListing(false);
           recognition.stop(); // Stop the recognition process
         };
-  
+
         recognition.onend = () => {
           // Optionally, you can perform additional actions when the recognition ends
           console.log('Speech recognition ended.');
         };
-  
+
         recognition.start();
       } catch (error) {
         console.error('Speech recognition not supported:', error);
@@ -279,7 +279,7 @@ const VR = () => {
       setMicListing(true);
     }
   };
-  
+
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(text);
@@ -298,7 +298,7 @@ const VR = () => {
       reader.onloadend = () => resolve(reader.result.split(",")[1]);
       reader.readAsDataURL(file);
     });
-  
+
     return {
       inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
     };
@@ -308,26 +308,26 @@ const VR = () => {
       setLoading(true);
       const genAI = new GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
-  
+
       const fileInputEl = document.querySelector("input[type=file]");
       const imageParts = await Promise.all(
         [...fileInputEl.files].map(fileToGenerativePart)
       );
-  
+
       // Adding default inputText for every image
       const defaultInputText =
         "Describe the image as if you are a guide for a blind person";
       const userSpeechResult = await getUserSpeech();
-  
+
       const isFirstTime = true;
       const inputText = isFirstTime ? defaultInputText : userSpeechResult;
-  
+
       const result = await model.generateContent([inputText, ...imageParts]);
       const text = result.response.text();
-  
+
       // Convert text to speech and get the audio blob
       const audioBlob = await textToSpeech(text);
-  
+
       setLoading(false);
       setData(audioBlob);
     } catch (error) {
@@ -335,30 +335,30 @@ const VR = () => {
       console.error("fetchDataFromGeminiAPI error: ", error);
     }
   };
-  
+
   // Function to get user speech input
   const getUserSpeech = async () => {
     return new Promise((resolve) => {
       if (micListing) {
         const recognition = new window.webkitSpeechRecognition();
         recognition.lang = "en-US";
-  
+
         recognition.onresult = (event) => {
           const speechResult = event.results[0][0].transcript;
           resolve(speechResult);
         };
-  
+
         recognition.onend = () => {
           recognition.stop();
         };
-  
+
         recognition.start();
       } else {
         resolve("");
       }
     });
   };
-  
+
   // Function to convert text to speech and return audio blob
   const textToSpeech = async (text) => {
     return new Promise((resolve, reject) => {
@@ -373,9 +373,9 @@ const VR = () => {
       window.speechSynthesis.speak(utterance);
     });
   };
-  
+
   const handleChangeMode = () => {
-    if(currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
+    if (currentMode == "Offline Mode") setCurrentMode("Interactive Mode");
     else setCurrentMode("Offline Mode");
   }
 
@@ -388,17 +388,9 @@ const VR = () => {
         </div>
 
         <div className="vr-shape">
-        {currentMode === "Interactive Mode" && (
-        <Gemini
-          inputText={userVoiceInput}
-          onData={(geminiData) => {
-            setResult(geminiData);
-            setData(geminiData); // Set Gemini data to the state
-            // Speak the Gemini data
-            speakText(geminiData);
-          }}
-        />
-      )}
+          {
+            currentMode == "Interactive Mode" ? <div className="ai-button">powered by <b>Google Gemini</b> <img src="https://static.wixstatic.com/media/592002_0f04cb41e098424588d09e2fba76ec65~mv2.gif" alt="" /></div> : null
+          }
           <div className="screen" id="simulator-screen">
             {selectedImage && !processingImage && (
               <div>
@@ -425,10 +417,10 @@ const VR = () => {
           </div>
           <div className="vr-btns">
             {
-              currentMode != "Offline Mode" ? 
-              <div className="mic-btn" onClick={userSpeaks} style={{ background: micListing ? 'orange' : '#ffffff54' }}>
-                <MicIcon style={{ fontSize: "1.5rem", fill: "black" }} />
-              </div> : null
+              currentMode != "Offline Mode" ?
+                <div className="mic-btn" onClick={userSpeaks} style={{ background: micListing ? 'orange' : '#ffffff54' }}>
+                  <MicIcon style={{ fontSize: "1.5rem", fill: "black" }} />
+                </div> : null
             }
             <PowerSettingsNewIcon
               style={{ fontSize: "1.5rem", fill: "white" }}
@@ -501,25 +493,37 @@ const VR = () => {
             </div>
           </div>
         </div>
+
+        {
+          currentMode == "Interactive Mode" ? (
+            <div className="user-voice-text">
+              PROMPT - Please describe the image in short, as if you are a guide for a blind person. Now reply as if the person is saying - ...
+            </div>
+          ) : null
+        }
+
+
         <div className="earphone">
           <img
             src="https://www.reviews.org/app/uploads/2022/01/71lj9Fdeq0L._AC_SL1500_-removebg-preview-275x300.png"
             alt=""
           />
         </div>
+        
         <div className="earphone-message">
           <div className="heading">Audio Feedback</div>
           <div className="feedback">
-  { currentMode != "Offline Mode"  ? (
-    <>Gemini Response Loading ....</>
-  ) : (
-    <>
-    No FeedBack as of now...
-    </>
-  )}
-</div>
+            {currentMode != "Offline Mode" ? (
+              <>Gemini Response Loading ....</>
+            ) : (
+              <>
+                No FeedBack as of now...
+              </>
+            )}
+          </div>
           <div className="arrow"></div>
         </div>
+
         {/*<Webcam
           ref={setWebcamRef}
           videoConstraints={videoConstraints}
@@ -751,6 +755,16 @@ const Simulator = styled.div`
         }
       }
     }
+  }
+
+  .user-voice-text{
+    position: absolute;
+    bottom: 30px;
+    left: 225px;
+    height: 80px;
+    width: 520px;
+    color: yellow;
+    font-size: 0.85rem;
   }
 
   .earphone {
